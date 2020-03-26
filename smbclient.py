@@ -109,7 +109,7 @@ class SambaClient(object):
              domain=None, resolve_order=None, port=None, ip=None,
              terminal_code=None, buffer_size=None, debug_level=None,
              config_file=None, logdir=None, netbios_name=None, kerberos=False,
-             runcmd_attemps=1):
+             runcmd_attemps=1, smb_version='SMB2'):
         self.path = '//%s/%s' % (server, share)
         smbclient_cmd = ['smbclient', self.path]
         self.debug_level = 0
@@ -118,6 +118,9 @@ class SambaClient(object):
         self._kerberos = kerberos
         if kerberos:
             smbclient_cmd.append('-k')
+        if smb_version:
+            assert 'SMB' in smb_version, 'smb_version must follow SMB# naming convention'
+            smbclient_cmd.extend(['-m', smb_version])
         if resolve_order:
             smbclient_cmd.extend(['-R', ' '.join(resolve_order)])
         if port:
