@@ -119,7 +119,6 @@ class SambaClient(object):
         if kerberos:
             smbclient_cmd.append('-k')
         if smb_version:
-            assert 'SMB' in smb_version, 'smb_version must follow SMB# naming convention'
             smbclient_cmd.extend(['-m', smb_version])
         if resolve_order:
             smbclient_cmd.extend(['-R', ' '.join(resolve_order)])
