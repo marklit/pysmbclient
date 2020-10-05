@@ -426,7 +426,7 @@ class SambaClient(object):
         if not self._kerberos:
             try:
                 _unlink(self.auth_filename)
-            except OSError, e:
+            except OSError as e:
                 if e.errno != _errno_ENOENT:
                     raise # unrelated error
 
