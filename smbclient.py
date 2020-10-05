@@ -164,6 +164,8 @@ class SambaClient(object):
         # run-a-new-smbclient-process-each-time implementation
         # TODO: Launch and keep one smbclient running
         cmd = self._smbclient_cmd + ['-c', command.encode('utf8')]
+        print('Sending to SMB:')
+        print(cmd)
         p = subprocess.Popen(cmd,
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         result = p.communicate()[0].strip()
