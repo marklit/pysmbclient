@@ -163,9 +163,7 @@ class SambaClient(object):
     def _raw_runcmd(self, command):
         # run-a-new-smbclient-process-each-time implementation
         # TODO: Launch and keep one smbclient running
-        cmd = self._smbclient_cmd + ['-c', command.encode('utf8')]
-        print('Sending to SMB:')
-        print(cmd)
+        cmd = self._smbclient_cmd + ['-c', command]
         p = subprocess.Popen(cmd,
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         result = p.communicate()[0].strip()
@@ -255,12 +253,11 @@ class SambaClient(object):
         """
         files = self._runcmd(u'ls', path).splitlines()
         for filedata in files:
-            m = _file_re.match(filedata)
+            m = _file_re.match(filedata.decode('utf-8'))
             if m:
                 name, modes, size, date = m.groups()
                 if name == '.' or name == '..':
                     continue
-                name = name.decode('utf-8')
                 size = int(size)
                 # Resets locale to "C" to parse english date properly
                 # (non thread-safe code)
