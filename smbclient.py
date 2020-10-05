@@ -466,7 +466,7 @@ class _SambaFile(object):
         self._file.close()
         try:
             self._flush()
-        except SambaClientError,err:
+        except SambaClientError:
             pass # fail silently because upload_update can break close
         self.open = False
         self._unlink()
