@@ -113,32 +113,45 @@ class SambaClient(object):
         self.path = '//%s/%s' % (server, share)
         smbclient_cmd = ['smbclient', self.path]
         self.debug_level = 0
+
         if username is None:
             kerberos = True
+
         self._kerberos = kerberos
+
         if kerberos:
             smbclient_cmd.append('-k')
+
         if smb_version:
             smbclient_cmd.extend(['-m', smb_version])
+
         if resolve_order:
             smbclient_cmd.extend(['-R', ' '.join(resolve_order)])
+
         if port:
             smbclient_cmd.extend(['-p', str(port)])
+
         if ip:
             smbclient_cmd.extend(['-I', ip])
+
         # -E: use stderr
         # -L: look
         if terminal_code:
             smbclient_cmd.extend(['-t', terminal_code])
+
         if buffer_size:
             smbclient_cmd.extend(['-b', str(buffer_size)])
+
         if debug_level:
             self.debug_level = debug_level
             smbclient_cmd.extend(['-d', str(debug_level)])
+
         if config_file:
             smbclient_cmd.extend(['-s', config_file])
+
         if logdir:
             smbclient_cmd.extend(['-l', logdir])
+
         if not kerberos:
             self.auth = {'username': username}
             # some connections use server address as domain
