@@ -148,7 +148,7 @@ class SambaClient(object):
             else:
                 smbclient_cmd.append('-N')
             fd, self.auth_filename = tempfile.mkstemp(prefix="smb.auth.")
-            auth_file = os.fdopen(fd, 'w+b')
+            auth_file = os.fdopen(fd, 'w')
             out = '\n'.join('%s=%s' % (k, v) for k, v in self.auth.items())
             auth_file.write(out.encode('utf-8'))
             auth_file.close()
