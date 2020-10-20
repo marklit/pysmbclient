@@ -160,7 +160,8 @@ class SambaClient(object):
                 self.auth['password'] = password
             else:
                 smbclient_cmd.append('-N')
-            temp_ = tempfile.NamedTemporaryFile(prefix="smb.auth.")
+            temp_ = tempfile.NamedTemporaryFile(prefix="smb.auth.",
+                                                delete=False)
             self.auth_filename = temp_.name
             open(temp_.name, 'w')\
                 .write('\n'.join('%s=%s' % (k, v)
@@ -264,7 +265,7 @@ class SambaClient(object):
         returns a list of tuples in the format:
         [(filename, modes, size, date), ...]
         """
-        files = self._runcmd(u'ls', path).splitlines()
+        files = self._runcmd(u'"ls ' + path + '"').splitlines()
         for filedata in files:
             m = _file_re.match(filedata.decode('utf-8'))
             if m:
