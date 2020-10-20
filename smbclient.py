@@ -304,7 +304,7 @@ class SambaClient(object):
 
     def _getfile(self, path):
         try:
-            f = self.glob(path).next()
+            f = next(self.glob(path))
         except StopIteration:
             raise SambaClientError('Path not found: %r' % path)
         return f
