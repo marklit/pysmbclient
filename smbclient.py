@@ -160,11 +160,11 @@ class SambaClient(object):
                 self.auth['password'] = password
             else:
                 smbclient_cmd.append('-N')
-            fd, self.auth_filename = tempfile.mkstemp(prefix="smb.auth.")
-            auth_file = os.fdopen(fd, 'w')
-            out = '\n'.join('%s=%s' % (k, v) for k, v in self.auth.items())
-            auth_file.write(out)
-            auth_file.close()
+            temp_ = tempfile.NamedTemporaryFile(prefix="smb.auth.")
+            self.auth_filename = temp_.name
+            open(temp_.name, 'w')\
+                .write('\n'.join('%s=%s' % (k, v)
+                                 for k, v in self.auth.items()))
             smbclient_cmd.extend(['-A', self.auth_filename])
         if netbios_name:
             smbclient_cmd.extend(['-n', netbios_name])
