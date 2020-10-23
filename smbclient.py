@@ -109,7 +109,8 @@ class SambaClient(object):
              domain=None, resolve_order=None, port=None, ip=None,
              terminal_code=None, buffer_size=None, debug_level=None,
              config_file=None, logdir=None, netbios_name=None, kerberos=False,
-             runcmd_attemps=1, smb_version='SMB2'):
+             runcmd_attemps=1, smb_version='SMB2', common_auth_file=None):
+        self.common_auth_file = common_auth_file
         self.path = '//%s/%s' % (server, share)
         smbclient_cmd = ['smbclient', self.path]
         self.debug_level = 0
@@ -178,13 +179,21 @@ class SambaClient(object):
         # run-a-new-smbclient-process-each-time implementation
         # TODO: Launch and keep one smbclient running
         cmd = self._smbclient_cmd + ['-c', command]
+
+        if self.common_auth_file:
+            for num, piece in enumerate(cmd):
+                if piece == '-A':
+                    cmd[num + 1] = self.common_auth_file
+
+        print(cmd)
+
         p = subprocess.Popen(cmd,
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         result = p.communicate()[0].strip()
         if p.returncode != 0 and self.runcmd_num_of_attemps:
             if self._runcmd_attemps < self.runcmd_num_of_attemps:
                 self._runcmd_attemps += 1
-                print("Number of attemps: %s (cmd: %s)" % (
+                print("Number of attempts: %s (cmd: %s)" % (
                     self._runcmd_attemps,cmd))
                 return self._raw_runcmd(command)
             raise SambaClientError("Error on %r: %r" % (' '.join(cmd), result))
@@ -265,7 +274,7 @@ class SambaClient(object):
         returns a list of tuples in the format:
         [(filename, modes, size, date), ...]
         """
-        files = self._runcmd(u'"ls ' + path + '"').splitlines()
+        files = self._runcmd("'ls " + path + "'").splitlines()
         for filedata in files:
             m = _file_re.match(filedata.decode('utf-8'))
             if m:
@@ -279,7 +288,36 @@ class SambaClient(object):
                 locale.setlocale(locale.LC_TIME, 'C')
                 date = datetime_strptime(date, '%a %b %d %H:%M:%S %Y')
                 locale.setlocale(locale.LC_TIME, loc)
+
                 yield (name, modes, size, date)
+
+    def glob_new(self, path):
+        """
+        Lists a glob (example: "/files/somefile.*")
+        returns a list of tuples in the format:
+        [(filename, modes, size, date), ...]
+        """
+        resp = []
+        files = self._runcmd("'ls " + path + "'").splitlines()
+        print(files)
+        for filedata in files:
+            m = _file_re.match(filedata.decode('utf-8'))
+            if m:
+                name, modes, size, date = m.groups()
+                if name == '.' or name == '..':
+                    continue
+                size = int(size)
+                # Resets locale to "C" to parse english date properly
+                # (non thread-safe code)
+                loc = locale.getlocale(locale.LC_TIME)
+                locale.setlocale(locale.LC_TIME, 'C')
+                date = datetime_strptime(date, '%a %b %d %H:%M:%S %Y')
+                locale.setlocale(locale.LC_TIME, loc)
+
+                print('appending', name, modes, size, date)
+                resp.append((name, modes, size, date))
+
+        return resp
 
     def listdir(self, path):
         """Emulates os.listdir()"""
@@ -304,10 +342,9 @@ class SambaClient(object):
 
     def _getfile(self, path):
         try:
-            f = next(self.glob(path))
+            return next(self.glob(path))
         except StopIteration:
             raise SambaClientError('Path not found: %r' % path)
-        return f
 
     def info(self, path):
         """Fetches information about a file"""
