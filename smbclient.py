@@ -185,16 +185,12 @@ class SambaClient(object):
                 if piece == '-A':
                     cmd[num + 1] = self.common_auth_file
 
-        print(cmd)
-
         p = subprocess.Popen(cmd,
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         result = p.communicate()[0].strip()
         if p.returncode != 0 and self.runcmd_num_of_attemps:
             if self._runcmd_attemps < self.runcmd_num_of_attemps:
                 self._runcmd_attemps += 1
-                print("Number of attempts: %s (cmd: %s)" % (
-                    self._runcmd_attemps,cmd))
                 return self._raw_runcmd(command)
             raise SambaClientError("Error on %r: %r" % (' '.join(cmd), result))
         self._runcmd_attemps = 1
@@ -299,7 +295,6 @@ class SambaClient(object):
         """
         resp = []
         files = self._runcmd("'ls " + path + "'").splitlines()
-        print(files)
         for filedata in files:
             m = _file_re.match(filedata.decode('utf-8'))
             if m:
@@ -314,7 +309,6 @@ class SambaClient(object):
                 date = datetime_strptime(date, '%a %b %d %H:%M:%S %Y')
                 locale.setlocale(locale.LC_TIME, loc)
 
-                print('appending', name, modes, size, date)
                 resp.append((name, modes, size, date))
 
         return resp
